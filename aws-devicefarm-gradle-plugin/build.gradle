@@ -35,7 +35,7 @@ dependencies {
     gradleApi gradleApi()
     compile localGroovy()
 
-    compile 'com.android.tools.build:builder-test-api:0.5.2'
+    compile 'com.android.tools.build:builder-test-api:2.3.0'
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'com.amazonaws:aws-java-sdk:1.11.481'
     testCompile 'org.testng:testng:6.8.8'
