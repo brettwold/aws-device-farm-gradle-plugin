@@ -14,28 +14,25 @@
 //
 package com.amazonaws.devicefarm;
 
-import java.util.List;
-
 import com.amazonaws.devicefarm.extension.DeviceFarmExtension;
 import com.amazonaws.devicefarm.extension.TestPackageProvider;
+import com.amazonaws.devicefarm.reports.TestResultJUnitXMLReporter;
 import com.amazonaws.services.devicefarm.AWSDeviceFarm;
 import com.amazonaws.services.devicefarm.AWSDeviceFarmClient;
 import com.amazonaws.services.devicefarm.model.BillingMethod;
 import com.amazonaws.services.devicefarm.model.DevicePool;
 import com.amazonaws.services.devicefarm.model.ExecutionConfiguration;
 import com.amazonaws.services.devicefarm.model.Project;
+import com.amazonaws.services.devicefarm.model.Run;
 import com.amazonaws.services.devicefarm.model.ScheduleRunConfiguration;
 import com.amazonaws.services.devicefarm.model.ScheduleRunRequest;
 import com.amazonaws.services.devicefarm.model.ScheduleRunResult;
 import com.amazonaws.services.devicefarm.model.ScheduleRunTest;
-import com.amazonaws.services.devicefarm.model.Run;
 import com.amazonaws.services.devicefarm.model.Upload;
 import com.amazonaws.services.devicefarm.model.UploadType;
-
-import com.amazonaws.devicefarm.reports.TestResultJUnitXMLReporter;
-
 import com.android.builder.testing.api.TestServer;
 import com.google.common.collect.Lists;
+
 import org.gradle.api.logging.Logger;
 
 import java.io.File;
@@ -61,8 +58,8 @@ public class DeviceFarmServer extends TestServer {
                             final Logger logger, final AWSDeviceFarmClient deviceFarmClient) throws IOException {
 
         this(extension, logger, deviceFarmClient,
-                new DeviceFarmUploader(deviceFarmClient, logger),
-                new DeviceFarmUtils(deviceFarmClient, extension));
+             new DeviceFarmUploader(deviceFarmClient, logger),
+             new DeviceFarmUtils(deviceFarmClient, extension));
     }
 
     public DeviceFarmServer(final DeviceFarmExtension extension,
@@ -121,7 +118,7 @@ public class DeviceFarmServer extends TestServer {
                 .withType(extension.getTest().getTestType())
                 .withFilter(extension.getTest().getFilter())
                 .withTestPackageArn(uploadTestPackageIfNeeded(project, testPackage))
-                .withTestSpecArn(testSpec == null ? null: testSpec.getArn());
+                .withTestSpecArn(testSpec == null ? null : testSpec.getArn());
 
 
         runTest.addParametersEntry(RUNPARAM_APP_PERF_MONITORING, Boolean.toString(extension.getPerformanceMonitoring()));
@@ -148,7 +145,7 @@ public class DeviceFarmServer extends TestServer {
                 .withName(String.format("%s (Gradle)", testedApk == null ? testPackage.getName() : testedApk.getName()));
 
         final ScheduleRunResult response = api.scheduleRun(request);
-        if (extension.isWait()) {
+        if (extension.isWillWait()) {
             DeviceFarmResultPoller poller = new DeviceFarmResultPoller(extension, logger, api, utils);
             try {
                 Run completedRun = poller.pollForRunCompletedStatus(response.getRun().getArn());
@@ -158,25 +155,23 @@ public class DeviceFarmServer extends TestServer {
                     return;
                 }
 
-                switch(extension.getOutputType()) {
-                case JUnit:
-                    TestResultJUnitXMLReporter reporter = new TestResultJUnitXMLReporter(completedRun, extension, logger, api, utils);
-                    try {
-                        reporter.writeResults(extension.getTestsDestination());
-                    } catch(Exception e) {
-                        logger.error(e.getMessage(), e);
-                    }
-                    break;
+                switch (extension.getOutputType()) {
+                    case JUnit:
+                        TestResultJUnitXMLReporter reporter = new TestResultJUnitXMLReporter(completedRun, extension, logger, api, utils);
+                        try {
+                            reporter.writeResults(extension.getTestsDestination());
+                        } catch (Exception e) {
+                            logger.error(e.getMessage(), e);
+                        }
+                        break;
                 }
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
         }
 
         logger.lifecycle(String.format("View the %s run in the AWS Device Farm Console: %s",
-                runTest.getType(), utils.getRunUrlFromArn(response.getRun().getArn())));
+                                       runTest.getType(), utils.getRunUrlFromArn(response.getRun().getArn())));
     }
 
     /**
@@ -195,10 +190,10 @@ public class DeviceFarmServer extends TestServer {
             final File testArtifacts = testPackageProvider.resolveTestPackage(testPackage);
 
             testArtifactsArn = uploader.upload(testArtifacts,
-                    project, testPackageProvider.getTestPackageUploadType()).getArn();
+                                               project, testPackageProvider.getTestPackageUploadType()).getArn();
 
             logger.lifecycle(String.format("Will run tests in %s, %s",
-                    testArtifacts.getName(), testArtifactsArn));
+                                           testArtifacts.getName(), testArtifactsArn));
 
         }
 
@@ -208,7 +203,7 @@ public class DeviceFarmServer extends TestServer {
     private Collection<Upload> uploadAuxApps(final Project project) {
 
         final Collection<Upload> auxApps = uploader.batchUpload(extension.getDeviceState().getAuxiliaryApps(),
-                project, UploadType.ANDROID_APP);
+                                                                project, UploadType.ANDROID_APP);
 
         if (auxApps == null || auxApps.size() == 0) {
             return null;
@@ -216,7 +211,7 @@ public class DeviceFarmServer extends TestServer {
 
         for (Upload auxApp : auxApps) {
             logger.lifecycle(String.format("Will install additional app %s, %s",
-                    auxApp.getName(), auxApp.getArn()));
+                                           auxApp.getName(), auxApp.getArn()));
         }
 
         return auxApps;
@@ -235,7 +230,7 @@ public class DeviceFarmServer extends TestServer {
                     project, UploadType.EXTERNAL_DATA).getArn();
 
             logger.lifecycle(String.format("Will copy data from zip %s, %s",
-                    extraDataZip, extraDataArn));
+                                           extraDataZip, extraDataArn));
         }
 
         return extraDataArn;

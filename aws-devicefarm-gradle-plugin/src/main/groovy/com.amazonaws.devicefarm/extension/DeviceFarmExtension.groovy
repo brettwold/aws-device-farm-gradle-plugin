@@ -21,7 +21,7 @@ class DeviceFarmExtension {
     private final Project project
 
     public enum OutputType {
-      JUnit
+        JUnit
     }
 
     /**
@@ -50,14 +50,14 @@ class DeviceFarmExtension {
      * [Optional] Wait for DeviceFarm to finish running the tests and consume results
      * Default: False
      */
-    boolean wait = false
+    boolean willWait = false
 
     /**
      * [Optional] Produce output for Test Run results in format
      * Default: JUnit
      */
     OutputType outputType = DeviceFarmExtension.OutputType.JUnit
-      
+
     /**
      * [Optional] Destination directory to store test suite results
      * Default: "build/test-results/adf-tests"
@@ -141,14 +141,14 @@ class DeviceFarmExtension {
      * Tell the plugin to wait for the Run to reach COMPLETE state before finishing this gradle task
      */
     void useWait() {
-        wait = true;
+        willWait = true;
     }
 
     /**
      * Don't wait for the Run to finish only upload the packages and kick off a Run
      */
     void uploadOnly() {
-        wait = false;
+        willWait = false;
     }
 
     /**
@@ -156,13 +156,13 @@ class DeviceFarmExtension {
      * output type using this method. Currently only supports "JUnit" for JUnit XML Export
      */
     void useOutput(String output) {
-        switch(output) {
-          case "JUnit":
-            outputType = DeviceFarmExtension.OutputType.JUnit;
-            break;
-          default: 
-            outputType = DeviceFarmExtension.OutputType.JUnit;
-            break;
+        switch (output) {
+            case "JUnit":
+                outputType = DeviceFarmExtension.OutputType.JUnit;
+                break;
+            default:
+                outputType = DeviceFarmExtension.OutputType.JUnit;
+                break;
         }
     }
 
@@ -172,7 +172,7 @@ class DeviceFarmExtension {
     void setTestsDestination(String destination) {
         testsDestination = destination
     }
-  
+
     void authentication(Closure closure) {
         project.configure(authentication, closure)
 
